@@ -1,0 +1,19 @@
+# Node.js
+node_modules
+npm-debug.log
+yarn-error.log
+pnpm-lock.yaml
+
+# Локальні IDE та OS файли
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Тимчасові папки
+dist
+build
+
+# environment variables
+.env
+.env.local
