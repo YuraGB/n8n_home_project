@@ -1,0 +1,412 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "60493729-964a-427a-8bdf-340c1536e923",
+              "leftValue": "={{ $json.date}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "fd0bf24b-0b86-44ac-bc19-e247b21072ca",
+              "leftValue": "={{ $json.lastVisited }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "a063c0b5-28ce-43e3-b8fb-3db47c32a357",
+              "leftValue": "={{ new Date($json.lastVisited) }}",
+              "rightValue": "={{\n(() => {\n  const raw = $json.date;\n  if (!raw) return new Date(0); // повернемо \"epoch\" як фейкову дату\n  const s = String(raw).trim();\n\n  // YYYY-MM-DD\n  if (/^\\d{4}-\\d{2}-\\d{2}$/.test(s)) {\n    return new Date(s + 'T00:00:00Z');\n  }\n\n  // DD.MM.YYYY\n  let m = s.match(/^(\\d{2})\\.(\\d{2})\\.(\\d{4})$/);\n  if (m) {\n    const [, dd, mm, yyyy] = m;\n    return new Date(Number(yyyy), Number(mm) - 1, Number(dd));\n  }\n\n  // DD/MM/YYYY\n  m = s.match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/);\n  if (m) {\n    const [, dd, mm, yyyy] = m;\n    return new Date(Number(yyyy), Number(mm) - 1, Number(dd));\n  }\n\n  // Якщо раптом прийшов timestamp рядком/числом\n  if (/^\\d+$/.test(s)) return new Date(Number(s));\n\n  // Фолбек\n  const d = new Date(s);\n  return isNaN(d.getTime()) ? new Date(0) : d;\n})()\n}}\n",
+              "operator": {
+                "type": "dateTime",
+                "operation": "before"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        288
+      ],
+      "id": "5e9ac3e6-bd5b-4903-9f47-218cf42c0cb9",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": "={{ false }}"
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        176,
+        272
+      ],
+      "id": "6a506501-909e-4ba3-ad71-84224df34567",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "url": "https://home-project-jet.vercel.app/api/posts",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -944,
+        272
+      ],
+      "id": "1b972add-93ea-454d-8c4d-2e0bbddb9af2",
+      "name": "Fetch customer posts",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "J0IDCW42dVLv4DIn",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\n\nconst postsData = [];\nfor (const item of $input.all()) {\n  postsData.push(JSON.parse(item.json.stdout))\n}\n\nreturn postsData[0]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        272
+      ],
+      "id": "0e6eab60-5b57-4d8a-b1f2-3ccdbbbd9654",
+      "name": "Format data"
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "binaryPropertyName": "={{ $(\"Fetch customer posts\").all().map(item => item.json).toJsonString() }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -736,
+        272
+      ],
+      "id": "1f5785f6-adb7-4a2b-b731-d9d957fdb28d",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "https://home-project-jet.vercel.app/api/post/hasUpdates",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=postId",
+              "value": "={{ $('Loop Over Items').item.json.postId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        736,
+        208
+      ],
+      "id": "fc75254e-1970-472b-b491-8770f801345c",
+      "name": "Update the post",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "J0IDCW42dVLv4DIn",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://home-project-jet.vercel.app/api/sendPush",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "userId",
+              "value": "={{ $('Fetch customer posts').first().json.userId }}"
+            },
+            {
+              "name": "title",
+              "value": "Є оновлення 🚀"
+            },
+            {
+              "name": "body",
+              "value": "=Тайтл {{ $(\"Fetch customer posts\").all().map(item => item.json).filter(item => item.id ===$('If').item.json.postId ).first().name.toJsonString() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        976,
+        208
+      ],
+      "id": "7351cfb6-32ba-4355-be8f-7c8a06f9c763",
+      "name": "Web notification"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        656,
+        528
+      ],
+      "id": "69748fb3-ede6-4eef-9da1-7a341cdc6a8b",
+      "name": "no updates"
+    },
+    {
+      "parameters": {
+        "command": "=npx tsx /usr/src/app/scripts/index.ts /tmp/input.json"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        272
+      ],
+      "id": "ba70a9a2-641c-4f7f-b101-6ee7307c8b1d",
+      "name": "Get Updates"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/tmp/input.json",
+        "dataPropertyName": "={{ $(\"Fetch customer posts\").all().map(item => item.json).toJsonString() }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        272
+      ],
+      "id": "4297d05a-316d-4c33-996d-e7c9d0acb134",
+      "name": "Write file on the  Disk"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      now: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        80
+      ],
+      "id": "984a5e50-fc13-47e2-b187-ff74c32b9828",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1120,
+        272
+      ],
+      "id": "51395ec0-4581-48a8-9b18-2991fa207307",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Update the post",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "no updates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch customer posts": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format data": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Write file on the  Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update the post": {
+      "main": [
+        [
+          {
+            "node": "Web notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Web notification": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "no updates": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Updates": {
+      "main": [
+        [
+          {
+            "node": "Format data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write file on the  Disk": {
+      "main": [
+        [
+          {
+            "node": "Get Updates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch customer posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "40636f61-9292-4493-95df-820cc9985565",
+  "meta": {
+    "instanceId": "bce34e47f06a7f7ac590ae36ff5227e99943b7320ded1e57c338fe28cc6a7186"
+  },
+  "id": "JIqGSdqQSa1mMDlN",
+  "tags": []
+}

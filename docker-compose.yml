@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   app:
     build: .
@@ -9,11 +7,14 @@ services:
     env_file:
       - .env
     environment:
-    - IS_DOCKER=true
+      - IS_DOCKER=true
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
     volumes:
+      - ./n8n_data:/home/node/.n8n
       - .:/usr/src/app
     networks:
       - app_network
+    restart: unless-stopped
 
 networks:
   app_network:

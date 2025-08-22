@@ -3,6 +3,10 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "scripts": {
+    "logs": "docker logs my_app --tail 50",
+    "get": "docker exec -it --user root my_app sh"
+  },
   "devDependencies": {
     "ts-node": "^10.9.2",
     "tsx": "^4.20.4",

@@ -9,26 +9,26 @@ import { getLatestResourceData } from "./getLatestResourceData";
 // * This function processes an array of post URLs, fetching the latest resource data for each.
 // */
 const fetchHelper = (data: TPostData[]) =>  data.map(({postUrl, postId, lastVisited}) => {
-    
-    if(!postUrl || !postId) {
-        console.error("Invalid post data:", { postUrl, postId });
-        return null;
+
+    if (!postUrl || !postId) {
+      console.error("Invalid post data:", { postUrl, postId });
+      return null;
     }
-    
-    if(postUrl.includes("senkuro")) {
+
+    if (postUrl.includes("senkuro")) {
       // Ensure the URL ends with "/chapters" for consistency
-      if(!postUrl.includes("chapters")) {
+      if (!postUrl.includes("chapters")) {
         postUrl += "/chapters";
       }
 
       return getLatestResourceData({
-        url:postUrl,
+        url: postUrl,
         chapterClassName: classSelectors.senkuro.chapterClassName,
         titleClassName: classSelectors.senkuro.titleClassName,
         dateClassName: classSelectors.senkuro.dateClassNane,
         postId: postId,
-        lastVisited
-      })
+        lastVisited,
+      });
     }
 
     if(postUrl.includes("mangabuff")) {
@@ -62,4 +62,3 @@ export const defindAndFetchResourceData = async (data: Array<TPostData>) => {
 
   return await Promise.allSettled(fetchHelper(postsWithChaptersToFetch))
 }
-  
