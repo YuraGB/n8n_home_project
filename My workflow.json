@@ -43,7 +43,7 @@
           ],
           "combinator": "and"
         },
-        "looseTypeValidation": true,
+        "looseTypeValidation": "={{ true }}",
         "options": {
           "ignoreCase": false
         }
@@ -51,25 +51,26 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        448,
-        288
+        0,
+        208
       ],
-      "id": "5e9ac3e6-bd5b-4903-9f47-218cf42c0cb9",
+      "id": "a1ed8c55-5641-4815-afec-b37bbae20db9",
       "name": "If"
     },
     {
       "parameters": {
+        "batchSize": "={{ 1 }}",
         "options": {
-          "reset": "={{ false }}"
+          "reset": false
         }
       },
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        176,
-        272
+        -272,
+        192
       ],
-      "id": "6a506501-909e-4ba3-ad71-84224df34567",
+      "id": "029d99e5-4be7-41f3-ab9b-67897c7330d0",
       "name": "Loop Over Items"
     },
     {
@@ -82,14 +83,14 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -944,
-        272
+        -1392,
+        192
       ],
-      "id": "1b972add-93ea-454d-8c4d-2e0bbddb9af2",
+      "id": "87e2edae-678a-41a3-b1fc-d3a64fcc44ff",
       "name": "Fetch customer posts",
       "credentials": {
         "httpBearerAuth": {
-          "id": "J0IDCW42dVLv4DIn",
+          "id": "CLwbNa1YChXgph9U",
           "name": "Bearer Auth account"
         }
       }
@@ -101,10 +102,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -80,
-        272
+        -528,
+        192
       ],
-      "id": "0e6eab60-5b57-4d8a-b1f2-3ccdbbbd9654",
+      "id": "906da46b-891a-4b18-b2d7-5b541c83957a",
       "name": "Format data"
     },
     {
@@ -116,11 +117,117 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -736,
-        272
+        -1184,
+        192
       ],
-      "id": "1f5785f6-adb7-4a2b-b731-d9d957fdb28d",
+      "id": "65a89637-e829-46ab-b1e1-d36cb2fac982",
       "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://home-project-jet.vercel.app/api/sendPush",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "userId",
+              "value": "={{ $('Fetch customer posts').first().json.userId }}"
+            },
+            {
+              "name": "title",
+              "value": "=🚀 Є оновлення  у  {{ $json.count }} тайтлів"
+            },
+            {
+              "name": "body",
+              "value": "=Тайтл(и): {{\"\\n- \" +$json.postTitles.join(\"\\n- \") }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "417e1058-f965-4507-bd76-a5a4ea87f2e0",
+      "name": "Web notification"
+    },
+    {
+      "parameters": {
+        "command": "=npx tsx /usr/src/app/scripts/index.ts /tmp/input.json"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -768,
+        192
+      ],
+      "id": "22a37193-8600-4eb6-b17d-105acdf184e3",
+      "name": "Get Updates"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/tmp/input.json",
+        "dataPropertyName": "={{ $(\"Fetch customer posts\").all().map(item => item.json).toJsonString() }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        -992,
+        192
+      ],
+      "id": "a539eb19-a5be-429b-bcf9-32e78b47cdcc",
+      "name": "Write file on the  Disk"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1568,
+        192
+      ],
+      "id": "c1e74594-b43b-422c-97c9-d70c84b87e3a",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "const allPosts = $('Fetch customer posts').all()\nconst titles =  $('Loop Over Items')\n  .all()\n  .filter(i => i.json.wasUpdated)\n  .map(elem => \n    allPosts\n      .find(item => item.json.id === elem.json.postId)\n  )\n  .filter(c => c)\n  .map(it => it?.json.name)\n\nconst count = titles.length\n\nreturn [\n  {\n    json: {\n      postTitles: titles, \n      count: count\n    }\n  }\n\n]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b8700dd7-3dfe-4c16-91f3-e1098ea34a43",
+      "name": "Format data for Notifications"
+    },
+    {
+      "parameters": {
+        "jsCode": "$('If').first().json.wasUpdated = true\n\nreturn $('If').first().json\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        208
+      ],
+      "id": "14badd3a-6ea7-48c4-9bea-178171d0e76f",
+      "name": "Update loop item on \"true\""
     },
     {
       "parameters": {
@@ -142,49 +249,17 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        736,
+        240,
         208
       ],
-      "id": "fc75254e-1970-472b-b491-8770f801345c",
-      "name": "Update the post",
+      "id": "62cec1a5-9160-4f5b-a139-8d5b2b54d3b4",
+      "name": "Update the post in DB",
       "credentials": {
         "httpBearerAuth": {
-          "id": "J0IDCW42dVLv4DIn",
+          "id": "CLwbNa1YChXgph9U",
           "name": "Bearer Auth account"
         }
       }
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://home-project-jet.vercel.app/api/sendPush",
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "userId",
-              "value": "={{ $('Fetch customer posts').first().json.userId }}"
-            },
-            {
-              "name": "title",
-              "value": "Є оновлення 🚀"
-            },
-            {
-              "name": "body",
-              "value": "=Тайтл {{ $(\"Fetch customer posts\").all().map(item => item.json).filter(item => item.id ===$('If').item.json.postId ).first().name.toJsonString() }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        976,
-        208
-      ],
-      "id": "7351cfb6-32ba-4355-be8f-7c8a06f9c763",
-      "name": "Web notification"
     },
     {
       "parameters": {
@@ -193,72 +268,11 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        656,
-        528
+        224,
+        416
       ],
-      "id": "69748fb3-ede6-4eef-9da1-7a341cdc6a8b",
-      "name": "no updates"
-    },
-    {
-      "parameters": {
-        "command": "=npx tsx /usr/src/app/scripts/index.ts /tmp/input.json"
-      },
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [
-        -320,
-        272
-      ],
-      "id": "ba70a9a2-641c-4f7f-b101-6ee7307c8b1d",
-      "name": "Get Updates"
-    },
-    {
-      "parameters": {
-        "operation": "write",
-        "fileName": "/tmp/input.json",
-        "dataPropertyName": "={{ $(\"Fetch customer posts\").all().map(item => item.json).toJsonString() }}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1,
-      "position": [
-        -544,
-        272
-      ],
-      "id": "4297d05a-316d-4c33-996d-e7c9d0acb134",
-      "name": "Write file on the  Disk"
-    },
-    {
-      "parameters": {
-        "jsCode": "return [\n  {\n    json: {\n      now: new Date().toISOString()\n    }\n  }\n];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        448,
-        80
-      ],
-      "id": "984a5e50-fc13-47e2-b187-ff74c32b9828",
-      "name": "Code"
-    },
-    {
-      "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "field": "hours"
-            }
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.2,
-      "position": [
-        -1120,
-        272
-      ],
-      "id": "51395ec0-4581-48a8-9b18-2991fa207307",
-      "name": "Schedule Trigger"
+      "id": "4d7487e6-730d-40fe-bd85-61c377c9cfc2",
+      "name": "no updates Do nothing"
     }
   ],
   "pinData": {},
@@ -267,7 +281,7 @@
       "main": [
         [
           {
-            "node": "Code",
+            "node": "Format data for Notifications",
             "type": "main",
             "index": 0
           }
@@ -285,14 +299,14 @@
       "main": [
         [
           {
-            "node": "Update the post",
+            "node": "Update the post in DB",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "no updates",
+            "node": "no updates Do nothing",
             "type": "main",
             "index": 0
           }
@@ -332,37 +346,9 @@
         ]
       ]
     },
-    "Update the post": {
-      "main": [
-        [
-          {
-            "node": "Web notification",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Web notification": {
       "main": [
-        [
-          {
-            "node": "Loop Over Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "no updates": {
-      "main": [
-        [
-          {
-            "node": "Loop Over Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "Get Updates": {
@@ -397,16 +383,62 @@
           }
         ]
       ]
+    },
+    "Format data for Notifications": {
+      "main": [
+        [
+          {
+            "node": "Web notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update loop item on \"true\"": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update the post in DB": {
+      "main": [
+        [
+          {
+            "node": "Update loop item on \"true\"",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "no updates Do nothing": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "timezone": "Europe/Kyiv",
+    "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "40636f61-9292-4493-95df-820cc9985565",
+  "versionId": "6caff0c3-89a3-4837-bc50-13f24e5328c9",
   "meta": {
-    "instanceId": "bce34e47f06a7f7ac590ae36ff5227e99943b7320ded1e57c338fe28cc6a7186"
+    "instanceId": "85512c407f333d8d3262b70bd0b7f126b569dd026848f434cabd8ec85c3033bb"
   },
-  "id": "JIqGSdqQSa1mMDlN",
+  "id": "1ZVJTIxFRlEYozfc",
   "tags": []
 }

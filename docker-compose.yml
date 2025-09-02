@@ -7,6 +7,7 @@ services:
     env_file:
       - .env
     environment:
+      - GENERIC_TIMEZONE=Europe/Kiev
       - IS_DOCKER=true
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
     volumes:
