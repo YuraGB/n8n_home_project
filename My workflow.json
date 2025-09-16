@@ -54,7 +54,7 @@
         0,
         208
       ],
-      "id": "a1ed8c55-5641-4815-afec-b37bbae20db9",
+      "id": "88ad2f4b-2337-4478-860d-b8bf219c2309",
       "name": "If"
     },
     {
@@ -70,7 +70,7 @@
         -272,
         192
       ],
-      "id": "029d99e5-4be7-41f3-ab9b-67897c7330d0",
+      "id": "e4c53a4d-1e53-4c2a-9cec-24ab074701ce",
       "name": "Loop Over Items"
     },
     {
@@ -86,11 +86,11 @@
         -1392,
         192
       ],
-      "id": "87e2edae-678a-41a3-b1fc-d3a64fcc44ff",
+      "id": "1fb3771b-e718-4ad5-b4f7-13245ff6af97",
       "name": "Fetch customer posts",
       "credentials": {
         "httpBearerAuth": {
-          "id": "CLwbNa1YChXgph9U",
+          "id": "G7Xz3WoYgB5jXHZO",
           "name": "Bearer Auth account"
         }
       }
@@ -105,7 +105,7 @@
         -528,
         192
       ],
-      "id": "906da46b-891a-4b18-b2d7-5b541c83957a",
+      "id": "62979a70-17bc-4fd9-bf17-fb2fbfeff758",
       "name": "Format data"
     },
     {
@@ -120,7 +120,7 @@
         -1184,
         192
       ],
-      "id": "65a89637-e829-46ab-b1e1-d36cb2fac982",
+      "id": "c116b685-c0d1-489f-b780-c73d3e2e6e75",
       "name": "Convert to File"
     },
     {
@@ -141,6 +141,10 @@
             {
               "name": "body",
               "value": "=Тайтл(и): {{\"\\n- \" +$json.postTitles.join(\"\\n- \") }}"
+            },
+            {
+              "name": "url",
+              "value": "https://home-project-jet.vercel.app/en-US"
             }
           ]
         },
@@ -149,10 +153,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        224,
-        0
+        704,
+        -80
       ],
-      "id": "417e1058-f965-4507-bd76-a5a4ea87f2e0",
+      "id": "57f4e708-6a06-40cb-925d-0bb25814e83a",
       "name": "Web notification"
     },
     {
@@ -165,7 +169,7 @@
         -768,
         192
       ],
-      "id": "22a37193-8600-4eb6-b17d-105acdf184e3",
+      "id": "f09da554-c71d-47b3-983a-2ed867dd3276",
       "name": "Get Updates"
     },
     {
@@ -181,7 +185,7 @@
         -992,
         192
       ],
-      "id": "a539eb19-a5be-429b-bcf9-32e78b47cdcc",
+      "id": "4ead0694-7653-4859-af8d-17127568134c",
       "name": "Write file on the  Disk"
     },
     {
@@ -200,7 +204,7 @@
         -1568,
         192
       ],
-      "id": "c1e74594-b43b-422c-97c9-d70c84b87e3a",
+      "id": "5091e30e-a28c-4f0d-9750-0cc3c3332efe",
       "name": "Schedule Trigger"
     },
     {
@@ -213,7 +217,7 @@
         0,
         0
       ],
-      "id": "b8700dd7-3dfe-4c16-91f3-e1098ea34a43",
+      "id": "3c1b5280-8381-4b98-ae68-b58665fc652f",
       "name": "Format data for Notifications"
     },
     {
@@ -226,7 +230,7 @@
         432,
         208
       ],
-      "id": "14badd3a-6ea7-48c4-9bea-178171d0e76f",
+      "id": "d7712219-c6fc-44c1-9269-d9e8b7744e9e",
       "name": "Update loop item on \"true\""
     },
     {
@@ -252,11 +256,11 @@
         240,
         208
       ],
-      "id": "62cec1a5-9160-4f5b-a139-8d5b2b54d3b4",
+      "id": "ddc9b056-af1b-4392-bf70-0a59f45e1125",
       "name": "Update the post in DB",
       "credentials": {
         "httpBearerAuth": {
-          "id": "CLwbNa1YChXgph9U",
+          "id": "G7Xz3WoYgB5jXHZO",
           "name": "Bearer Auth account"
         }
       }
@@ -271,8 +275,41 @@
         224,
         416
       ],
-      "id": "4d7487e6-730d-40fe-bd85-61c377c9cfc2",
+      "id": "6f86c1f1-ab93-4801-a47f-a1e4640b5a16",
       "name": "no updates Do nothing"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e2db2ec3-c7b5-49f2-8a24-c8e257bce6f4",
+              "leftValue": "={{ $json.count }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        288,
+        0
+      ],
+      "id": "aafaa912-ad37-473a-8686-3c4f573ccd77",
+      "name": "If1"
     }
   ],
   "pinData": {},
@@ -346,11 +383,6 @@
         ]
       ]
     },
-    "Web notification": {
-      "main": [
-        []
-      ]
-    },
     "Get Updates": {
       "main": [
         [
@@ -388,7 +420,7 @@
       "main": [
         [
           {
-            "node": "Web notification",
+            "node": "If1",
             "type": "main",
             "index": 0
           }
@@ -427,18 +459,27 @@
           }
         ]
       ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Web notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": true,
+  "active": false,
   "settings": {
-    "executionOrder": "v1",
-    "timezone": "Europe/Kyiv",
-    "callerPolicy": "workflowsFromSameOwner"
+    "executionOrder": "v1"
   },
-  "versionId": "6caff0c3-89a3-4837-bc50-13f24e5328c9",
+  "versionId": "89bb1d17-d9ae-46fd-b909-ef1dcf60674c",
   "meta": {
-    "instanceId": "85512c407f333d8d3262b70bd0b7f126b569dd026848f434cabd8ec85c3033bb"
+    "instanceId": "833d154e3f0779036e6c4e5738cf5a099dbc3cc5691b22f6495e4baf22634cba"
   },
-  "id": "1ZVJTIxFRlEYozfc",
+  "id": "atSNsabd7aP9KBdG",
   "tags": []
 }
