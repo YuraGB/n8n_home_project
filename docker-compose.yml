@@ -10,12 +10,24 @@ services:
       - GENERIC_TIMEZONE=Europe/Kiev
       - IS_DOCKER=true
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      - N8N_RESTRICT_FILE_ACCESS_TO=/tmp/input.json
+      - N8N_RUNNERS_ENABLED=true
+      - N8N_EXECUTE_COMMAND_ENABLED=true
+      - NODES_EXCLUDE="[]"
     volumes:
-      - ./n8n_data:/home/node/.n8n
+      - n8n_data:/home/node/.n8n
       - .:/usr/src/app
     networks:
       - app_network
     restart: unless-stopped
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+volumes:
+  n8n_data: {}
 
 networks:
   app_network:
