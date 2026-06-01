@@ -1,6 +1,7 @@
 services:
   app:
     build: .
+    shm_size: "1gb"
     container_name: my_app
     ports:
       - "5678:5678"

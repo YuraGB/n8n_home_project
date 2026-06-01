@@ -1,48 +1,36 @@
 FROM node:20-bullseye
 
-# Chromium + залежності
 RUN apt-get update && apt-get install -y \
-    chromium \
-    libnss3 \
-    libatk-bridge2.0-0 \
-    libatk1.0-0 \
-    libdrm2 \
-    libxkbcommon0 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxfixes3 \
-    libxrandr2 \
-    libgbm1 \
-    libpango-1.0-0 \
-    libcairo2 \
-    libasound2 \
+    wget curl gnupg ca-certificates \
     fonts-liberation \
-    libgtk-3-0 \
-    wget \
-    curl \
+    libnss3 libatk-bridge2.0-0 libxss1 \
+    libasound2 libgbm1 libgtk-3-0 \
+    libxshmfence1 xdg-utils \
  && rm -rf /var/lib/apt/lists/*
 
-# Ставимо n8n глобально
+# Google Chrome ONLY
+RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+    apt-get install -y ./google-chrome-stable_current_amd64.deb && \
+    rm google-chrome-stable_current_amd64.deb
+
+# Puppeteer config
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+
+# n8n
 RUN npm install -g n8n
 
-# Робоча папка
 WORKDIR /usr/src/app
 
-# package.json і залежності
 COPY package*.json ./
 RUN npm install
-RUN npm install tsx --save-dev
 
-# Копіюємо код
 COPY . .
 
-# Puppeteer буде використовувати системний Chromium
-ENV PUPPETEER_SKIP_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV N8N_RUNNERS_ENABLED=true
-ENV NODES_EXCLUDE="[]"
-ENV N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
 ENV N8N_EXECUTE_COMMAND_ENABLED=true
+ENV N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
 
 EXPOSE 5678
+
 CMD ["n8n", "start"]

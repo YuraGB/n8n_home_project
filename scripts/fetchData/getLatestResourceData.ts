@@ -10,15 +10,15 @@ import { CHROMIUM_PATH, lunchArgs } from "../constants";
  */
 const lunchNewBrowserPage = async (url: string) => {
   const browser = await launch({
+    executablePath: CHROMIUM_PATH,
     headless: true,
     args: lunchArgs,
-    executablePath: CHROMIUM_PATH, // /usr/bin/chromium
   });
 
   const page = await browser.newPage();
 
   await page.goto(url, {
-    waitUntil: "networkidle0",
+    waitUntil: "domcontentloaded",
     timeout: 160000, // Increased timeout for slow loading pages for Docker environments
   });
 
@@ -60,7 +60,7 @@ export const getLatestResourceData = async ({
     page,
     chapterClassName,
     titleClassName,
-    dateClassName
+    dateClassName,
   );
 
   // Remove placeholders
