@@ -1,6 +1,13 @@
 // import { getPostsData } from "./fetchData/getPostsData";
 import fs from "fs";
 import { defindAndFetchResourceData } from "./fetchData/defindAndFetchResourceData";
+import type { TChapterData, TPostData } from "./types";
+
+type InputPost = {
+  url?: unknown;
+  id?: unknown;
+  lastVisited?: unknown;
+};
 
 /**
  * This script is designed to fetch the latest resource data based on provided posts data.
@@ -13,7 +20,7 @@ import { defindAndFetchResourceData } from "./fetchData/defindAndFetchResourceDa
  *    ---> It meens NO CONSOLE LOGS except for errors and JSON output. <---
  */
 (async () => {
-  let postsData: any;
+  let postsData: unknown;
   const arg = process.argv[2];
   // ------------------ //
   // console.log("Starting script with argument:", arg);
@@ -34,25 +41,35 @@ import { defindAndFetchResourceData } from "./fetchData/defindAndFetchResourceDa
     }
   } catch (error) {
     console.error("Error parsing JSON:", error);
+    process.exit(1);
   }
 
-  if (!postsData || postsData.length === 0) {
+  if (!Array.isArray(postsData) || postsData.length === 0) {
     console.error("No posts data found.");
     process.exit(1);
   }
 
   const formattedPostsData = postsData
-    .map((post: { url: string; id: string; lastVisited: string }) => {
-      if (!post.url || !post.id) {
+    .map((post: InputPost): TPostData | null => {
+      if (typeof post.url !== "string") {
         return null;
       }
+
+      const postId =
+        typeof post.id === "number" ? post.id : Number.parseInt(String(post.id), 10);
+
+      if (!Number.isInteger(postId)) {
+        return null;
+      }
+
       return {
         postUrl: post.url,
-        postId: parseInt(post.id, 10), // Перетворюємо id на число
-        lastVisited: post.lastVisited,
+        postId,
+        lastVisited:
+          typeof post.lastVisited === "string" ? post.lastVisited : null,
       };
     })
-    .filter((post: any) => post !== null);
+    .filter((post): post is TPostData => post !== null);
 
   // ------------------ //
   // console.log("Formatted posts data:", formattedPostsData);
@@ -70,14 +87,7 @@ import { defindAndFetchResourceData } from "./fetchData/defindAndFetchResourceDa
 
   const parsedSettledData = latestResourceDataPromiseSettled
     .map(
-      (
-        item: PromiseSettledResult<{
-          title: string;
-          postId: number;
-          date: string;
-          lastVisited: string;
-        } | null>,
-      ) => {
+      (item: PromiseSettledResult<TChapterData | null>) => {
         if (item.status === "fulfilled") {
           return item.value;
         }

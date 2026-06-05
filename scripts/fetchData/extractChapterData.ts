@@ -1,32 +1,42 @@
 import type { Page } from "puppeteer";
 import { resourcePlaceholder } from "../constants";
+import type { TChapterData } from "../types";
 
-/** * Extracts chapter data from the page.
+/**
+ * Extracts chapter data from the page.
  * @param page
  * @param chapterClassName
  * @param titleClassName
  * @param dateClassName
- * @return {Promise<Array<{title: string, date: string, postId: number, lastVisited: string}>> }
+ * @return {Promise<{title: string, date: string, postId: number, lastVisited: string | null}>}
  */
-export const extractChapterData = async (page: Page, chapterClassName: string, titleClassName: string, dateClassName: string,) => {  
-    // Wait for the chapter elements to be present
-    return await page.evaluate((chapterSelector, titleSelector, dateSelector) => {
+export const extractChapterData = async (
+  page: Page,
+  chapterClassName: string,
+  titleClassName: string,
+  dateClassName: string,
+): Promise<TChapterData> => {
+  return await page.evaluate(
+    (chapterSelector, titleSelector, dateSelector, placeholder) => {
       const item = document.querySelector(chapterSelector);
 
       if (!item) {
-        console.error("No items found with the provided selector:", chapterSelector);
-        return resourcePlaceholder
+        return placeholder;
       }
 
-      const titleElement = item.querySelector(titleSelector);      
+      const titleElement = item.querySelector(titleSelector);
       const dateElement = item.querySelector(dateSelector);
-          
+
       return {
-          title : titleElement?.textContent?.trim() || "",          
-          date : dateElement?.textContent?.trim() || ""  ,
-          postId: 0, // Placeholder for postId, will be set later        
-          lastVisited: '' // Placeholder for lastVisited, will be set later
+        title: titleElement?.textContent?.trim() || "",
+        date: dateElement?.textContent?.trim() || "",
+        postId: 0,
+        lastVisited: null,
       };
-      
-  }, chapterClassName, titleClassName, dateClassName); // ← передаємо значення
-}
+    },
+    chapterClassName,
+    titleClassName,
+    dateClassName,
+    resourcePlaceholder,
+  );
+};

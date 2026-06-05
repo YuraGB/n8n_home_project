@@ -1,18 +1,18 @@
 import { launch } from "puppeteer";
 import { extractChapterData } from "./extractChapterData";
 import type { TGetLatestResourceDataParams } from "../types";
-import { CHROMIUM_PATH, lunchArgs } from "../constants";
+import { CHROMIUM_PATH, launchArgs } from "../constants";
 
 /**
  * Launches a new browser page and navigates to the specified URL.
  * @param url The URL to navigate to.
  * @returns An object containing the browser and page instances.
  */
-const lunchNewBrowserPage = async (url: string) => {
+const launchNewBrowserPage = async (url: string) => {
   const browser = await launch({
     executablePath: CHROMIUM_PATH,
     headless: true,
-    args: lunchArgs,
+    args: launchArgs,
   });
 
   const page = await browser.newPage();
@@ -41,32 +41,30 @@ export const getLatestResourceData = async ({
   postId,
   lastVisited,
 }: TGetLatestResourceDataParams) => {
-  const { browser, page } = await lunchNewBrowserPage(url);
+  const { browser, page } = await launchNewBrowserPage(url);
 
-  // If chapters are loaded in a specific tab, click on it
-  // This is useful for sites like Mangabuff where chapters are not loaded by default
-  if (tabSelector) {
-    await page.waitForSelector(tabSelector);
-    await page.click(tabSelector);
-  }
+  try {
+    if (!chapterClassName || !titleClassName || !dateClassName) {
+      return null;
+    }
 
-  if (!chapterClassName || !titleClassName || !dateClassName) {
+    // Mangabuff keeps chapters behind a tab.
+    if (tabSelector) {
+      await page.waitForSelector(tabSelector);
+      await page.click(tabSelector);
+    }
+
+    const chapters = await extractChapterData(
+      page,
+      chapterClassName,
+      titleClassName,
+      dateClassName,
+    );
+
+    chapters.postId = postId;
+    chapters.lastVisited = lastVisited;
+    return chapters;
+  } finally {
     await browser.close();
-    return null;
   }
-
-  // Extract chapter data from the page
-  const chapters = await extractChapterData(
-    page,
-    chapterClassName,
-    titleClassName,
-    dateClassName,
-  );
-
-  // Remove placeholders
-  chapters.postId = postId;
-  chapters.lastVisited = lastVisited;
-
-  await browser.close();
-  return chapters;
 };

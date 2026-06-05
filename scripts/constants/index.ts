@@ -6,13 +6,13 @@ dotenv.config({ quiet: true });
 export const classSelectors = {
   senkuro: {
     chapterClassName: ".card-chapter",
-    titleClassName: ".card-chapter__link",
-    dateClassNane: ".v-popper.v-popper--theme-tooltip > span",
+    titleClassName: ".card-chapter__name",
+    dateClassName: ".v-popper.v-popper--theme-tooltip > span",
   },
   mangabuff: {
     chapterClassName: ".chapters__item",
     titleClassName: ".chapters__value",
-    dateClassNane: ".chapters__add-date",
+    dateClassName: ".chapters__add-date",
     tabSelector: 'button[data-page="chapters"]',
   },
 };
@@ -42,7 +42,7 @@ export const POSTS_API_URL = (() => {
 
 export const SOURCE_TOKEN = process.env.SOURCE_TOKEN;
 
-export const lunchArgs = [
+export const launchArgs = [
   "--no-sandbox",
   "--disable-setuid-sandbox",
   "--disable-dev-shm-usage",
