@@ -1,14 +1,8 @@
 import { POSTS_API_URL, SOURCE_TOKEN } from "../constants";
-import type { TPostData } from "../types";
-
-type ApiPost = {
-  url?: unknown;
-  id?: unknown;
-  lastVisited?: unknown;
-};
+import { mapData } from "./mapData";
 
 /**
- * 
+ *
  * @returns {Promise<Array<{postUrl: string}>> | null}
  * Fetches posts data from the API defined in the environment variable POSTS_API_URL.
  */
@@ -35,29 +29,7 @@ export const getPostsData = async () => {
       return null;
     }
 
-    return data
-      .map((post: ApiPost): TPostData | null => {
-        if (typeof post.url !== "string") {
-          return null;
-        }
-
-        const postId =
-          typeof post.id === "number"
-            ? post.id
-            : Number.parseInt(String(post.id), 10);
-
-        if (!Number.isInteger(postId)) {
-          return null;
-        }
-
-        return {
-          postUrl: post.url,
-          postId,
-          lastVisited:
-            typeof post.lastVisited === "string" ? post.lastVisited : null,
-        };
-      })
-      .filter((post): post is TPostData => post !== null);
+    return mapData(data);
   } catch (error) {
     console.error("Error fetching posts data:", error);
     return null;

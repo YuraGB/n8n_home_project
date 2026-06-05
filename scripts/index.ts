@@ -2,6 +2,7 @@
 import fs from "fs";
 import { defindAndFetchResourceData } from "./fetchData/defindAndFetchResourceData";
 import type { TChapterData, TPostData } from "./types";
+import { mapData } from "./fetchData/mapData";
 
 type InputPost = {
   url?: unknown;
@@ -49,27 +50,7 @@ type InputPost = {
     process.exit(1);
   }
 
-  const formattedPostsData = postsData
-    .map((post: InputPost): TPostData | null => {
-      if (typeof post.url !== "string") {
-        return null;
-      }
-
-      const postId =
-        typeof post.id === "number" ? post.id : Number.parseInt(String(post.id), 10);
-
-      if (!Number.isInteger(postId)) {
-        return null;
-      }
-
-      return {
-        postUrl: post.url,
-        postId,
-        lastVisited:
-          typeof post.lastVisited === "string" ? post.lastVisited : null,
-      };
-    })
-    .filter((post): post is TPostData => post !== null);
+  const formattedPostsData = mapData(postsData);
 
   // ------------------ //
   // console.log("Formatted posts data:", formattedPostsData);
@@ -86,14 +67,12 @@ type InputPost = {
   }
 
   const parsedSettledData = latestResourceDataPromiseSettled
-    .map(
-      (item: PromiseSettledResult<TChapterData | null>) => {
-        if (item.status === "fulfilled") {
-          return item.value;
-        }
-        return null;
-      },
-    )
+    .map((item: PromiseSettledResult<TChapterData | null>) => {
+      if (item.status === "fulfilled") {
+        return item.value;
+      }
+      return null;
+    })
     .filter((i) => !!i);
 
   // // Виводимо як JSON, щоб n8n міг зчитати

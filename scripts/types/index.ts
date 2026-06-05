@@ -20,3 +20,9 @@ export type TGetLatestResourceDataParams = {
   postId: number;
   lastVisited: string | null;
 };
+
+export type ApiPost = {
+  url?: unknown;
+  id?: unknown;
+  lastVisited?: unknown;
+};
