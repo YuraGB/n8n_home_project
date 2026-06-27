@@ -38,8 +38,6 @@ export const POSTS_API_URL = (() => {
   }
 })();
 
-// console.log("Using API URL:", POSTS_API_URL);
-
 export const SOURCE_TOKEN = process.env.SOURCE_TOKEN;
 
 export const launchArgs = [

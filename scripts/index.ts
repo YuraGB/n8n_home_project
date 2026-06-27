@@ -1,14 +1,7 @@
-// import { getPostsData } from "./fetchData/getPostsData";
 import fs from "fs";
 import { defindAndFetchResourceData } from "./fetchData/defindAndFetchResourceData";
-import type { TChapterData, TPostData } from "./types";
+import type { TChapterData } from "./types";
 import { mapData } from "./fetchData/mapData";
-
-type InputPost = {
-  url?: unknown;
-  id?: unknown;
-  lastVisited?: unknown;
-};
 
 /**
  * This script is designed to fetch the latest resource data based on provided posts data.
