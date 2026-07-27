@@ -2,6 +2,7 @@ export type TPostData = {
   postUrl: string;
   postId: number;
   lastVisited: string | null;
+  hasUpdates: boolean;
 };
 
 export type TChapterData = {
@@ -25,4 +26,7 @@ export type ApiPost = {
   url?: unknown;
   id?: unknown;
   lastVisited?: unknown;
+  /** `hadUpdates` is the current API field; keep `hasUpdates` for old exports. */
+  hadUpdates?: unknown;
+  hasUpdates?: unknown;
 };

@@ -15,43 +15,54 @@ const fetchHelper = (data: TPostData[]) =>
           ? postUrl
           : `${postUrl}/chapters`;
 
-        return getLatestResourceData({
-          url,
-          chapterClassName: classSelectors.senkuro.chapterClassName,
-          titleClassName: classSelectors.senkuro.titleClassName,
-          dateClassName: classSelectors.senkuro.dateClassName,
-          postId,
-          lastVisited,
-        });
+        return () =>
+          getLatestResourceData({
+            url,
+            chapterClassName: classSelectors.senkuro.chapterClassName,
+            titleClassName: classSelectors.senkuro.titleClassName,
+            dateClassName: classSelectors.senkuro.dateClassName,
+            postId,
+            lastVisited,
+          });
       }
 
       if (postUrl.includes("mangabuff")) {
-        return getLatestResourceData({
-          url: postUrl,
-          chapterClassName: classSelectors.mangabuff.chapterClassName,
-          titleClassName: classSelectors.mangabuff.titleClassName,
-          dateClassName: classSelectors.mangabuff.dateClassName,
-          tabSelector: classSelectors.mangabuff.tabSelector,
-          postId,
-          lastVisited,
-        });
+        return () =>
+          getLatestResourceData({
+            url: postUrl,
+            chapterClassName: classSelectors.mangabuff.chapterClassName,
+            titleClassName: classSelectors.mangabuff.titleClassName,
+            dateClassName: classSelectors.mangabuff.dateClassName,
+            tabSelector: classSelectors.mangabuff.tabSelector,
+            postId,
+            lastVisited,
+          });
       }
 
       return null;
     })
     .filter(
-      (request): request is Promise<TChapterData | null> => request !== null,
+      (request): request is () => Promise<TChapterData | null> =>
+        request !== null,
     );
 
 export const defindAndFetchResourceData = async (data: TPostData[]) => {
-  const postsWithChaptersToFetch = data.filter((post) =>
-    Object.keys(classSelectors).some((key) => post.postUrl.includes(key)),
+  const postsWithChaptersToFetch = data.filter(
+    (post) =>
+      Object.keys(classSelectors).some((key) => post.postUrl.includes(key)) &&
+      !post.hasUpdates,
   );
+  const results: PromiseSettledResult<TChapterData | null>[] = [];
 
-  if (postsWithChaptersToFetch.length === 0) {
-    console.error("No valid posts found to fetch chapters.");
-    return null;
+  // Each request starts a Chrome process. Running them all at once makes Chrome
+  // detach frames before navigation has completed.
+  for (const fetchResource of fetchHelper(postsWithChaptersToFetch)) {
+    try {
+      results.push({ status: "fulfilled", value: await fetchResource() });
+    } catch (reason) {
+      results.push({ status: "rejected", reason });
+    }
   }
 
-  return await Promise.allSettled(fetchHelper(postsWithChaptersToFetch));
+  return results;
 };

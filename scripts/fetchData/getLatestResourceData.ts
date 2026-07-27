@@ -18,6 +18,8 @@ const launchNewBrowserPage = async (url: string) => {
   const page = await browser.newPage();
 
   await page.goto(url, {
+    // The chapter list is awaited separately below. Waiting for every image and
+    // third-party asset only makes the request slower and less reliable.
     waitUntil: "domcontentloaded",
     timeout: 160000, // Increased timeout for slow loading pages for Docker environments
   });
@@ -54,6 +56,17 @@ export const getLatestResourceData = async ({
       await page.click(tabSelector);
     }
 
+    const chaptersAreHidden = await page.evaluate(() =>
+      document.body.innerText.includes("Вы не авторизованы"),
+    );
+
+    if (chaptersAreHidden) {
+      console.error(`Chapters are hidden for ${page.url()}: authentication is required.`);
+      return null;
+    }
+
+    await page.waitForSelector(chapterClassName);
+
     const chapters = await extractChapterData(
       page,
       chapterClassName,
@@ -64,6 +77,8 @@ export const getLatestResourceData = async ({
     chapters.postId = postId;
     chapters.lastVisited = lastVisited;
     return chapters;
+  } catch (e: unknown) {
+    throw new Error(`${url}, Nateve Error message: ${e}`);
   } finally {
     await browser.close();
   }

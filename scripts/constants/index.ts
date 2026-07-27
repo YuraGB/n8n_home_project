@@ -46,7 +46,6 @@ export const launchArgs = [
   "--disable-dev-shm-usage",
   "--disable-gpu",
   "--no-zygote",
-  "--single-process",
   "--disable-extensions",
   "--disable-background-networking",
   "--disable-background-timer-throttling",

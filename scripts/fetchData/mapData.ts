@@ -21,6 +21,7 @@ export const mapData = (data: ApiPost[]) =>
         postId,
         lastVisited:
           typeof post.lastVisited === "string" ? post.lastVisited : null,
+        hasUpdates: post.hadUpdates === true || post.hasUpdates === true,
       };
     })
     .filter((post): post is TPostData => post !== null);
